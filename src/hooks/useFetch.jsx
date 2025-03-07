@@ -1,28 +1,48 @@
 import { useState, useEffect } from "react";
-export default function useFetch(url, options = {}) {
+
+export default function useFetch(url) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
   useEffect(() => {
-    const fetchDat = async () => {
+    if (!url) {
+      setLoading(false);
+      setData(null);
+      setError(null);
+      return;
+    }
+
+    console.log("Fetching data from:", url);
+
+    const controller = new AbortController();
+    const signal = controller.signal;
+
+    const fetchData = async () => {
       setLoading(true);
-      const abortController = new AbortController();
-      options.signal = abortController.signal;
       try {
-        const response = await fetch(url, { ...options });
-        if (!response.ok) throw new Error("Failed to fetch data");
-        const data = await response.json();
-        setData(data);
+        const response = await fetch(url, { signal });
+        if (!response.ok)
+          throw new Error(`Failed to fetch data: ${response.status}`);
+        const jsonData = await response.json();
+        setData(jsonData);
+        setError(null);
       } catch (error) {
         if (error.name !== "AbortError") {
-          setError(error);
+          setError(error.message || "An error occurred");
+          setData(null);
         }
       } finally {
         setLoading(false);
       }
     };
-    fetchDat();
-    return () => abortController.abort();
+
+    fetchData();
+
+    return () => {
+      controller.abort();
+    };
   }, [url]);
+
   return { data, loading, error };
 }
