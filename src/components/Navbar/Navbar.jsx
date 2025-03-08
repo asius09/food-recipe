@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { useRecipe } from "../../context";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router";
+import { useRecipe, useNavbar } from "../../context";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setSearch } = useRecipe();
+  const { isActive, setIsActive } = useNavbar();
   const [searchInput, setSearchInput] = useState("");
 
   const handleSubmit = (e) => {
@@ -13,6 +15,16 @@ const Navbar = () => {
     navigate(`/result/${searchInput}`);
     setSearchInput("");
   };
+
+  useEffect(() => {
+    if (location.pathname === "/") {
+      setIsActive({ home: true, explore: false, favourites: false });
+    } else if (location.pathname === "/feed") {
+      setIsActive({ home: false, explore: true, favourites: false });
+    } else if (location.pathname === "/favourites") {
+      setIsActive({ home: false, explore: false, favourites: true });
+    }
+  }, [location, setIsActive]);
 
   return (
     <nav className="bg-gray-800 shadow-lg py-4 text-gray-100  absolute top-0 left-0 w-full">
@@ -42,27 +54,42 @@ const Navbar = () => {
           <li>
             <Link
               to="/"
-              className="text-gray-300 hover:text-amber-400 transition-colors duration-300 flex flex-col items-center"
+              onClick={() =>
+                setIsActive({ home: true, explore: false, favourites: false })
+              }
+              className={`${
+                isActive.home ? "text-amber-500" : "text-gray-300 hover:text-amber-400"
+              } transition-colors duration-300 flex flex-col items-center`}
             >
-              <i className="ri-home-5-fill text-2xl" />
+              <i className={`ri-home-5-${isActive.home ? "fill" : "line"} text-2xl`} />
               <span className="text-xs mt-1">Home</span>
             </Link>
           </li>
           <li>
             <Link
               to="/feed"
-              className="text-gray-300 hover:text-amber-400 transition-colors duration-300 flex flex-col items-center"
+              onClick={() =>
+                setIsActive({ home: false, explore: true, favourites: false })
+              }
+              className={`${
+                isActive.explore ? "text-amber-500" : "text-gray-300 hover:text-amber-400"
+              } transition-colors duration-300 flex flex-col items-center`}
             >
-              <i className="ri-compass-3-line text-2xl" />
+              <i className={`ri-compass-3-${isActive.explore ? "fill" : "line"} text-2xl`} />
               <span className="text-xs mt-1">Explore</span>
             </Link>
           </li>
           <li>
             <Link
               to="/favourites"
-              className="text-gray-300 hover:text-amber-400 transition-colors duration-300 flex flex-col items-center"
+              onClick={() =>
+                setIsActive({ home: false, explore: false, favourites: true })
+              }
+              className={`${
+                isActive.favourites ? "text-amber-500" : "text-gray-300 hover:text-amber-400"
+              } transition-colors duration-300 flex flex-col items-center`}
             >
-              <i className="ri-heart-3-fill text-2xl" />
+              <i className={`ri-heart-3-${isActive.favourites ? "fill" : "line"} text-2xl`} />
               <span className="text-xs mt-1">Favorites</span>
             </Link>
           </li>

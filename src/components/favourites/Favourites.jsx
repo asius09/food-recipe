@@ -17,7 +17,7 @@ const Favourites = () => {
             You haven't saved any recipes yet
           </p>
           <Link
-            to="/"
+            to="/feed"
             className="mt-6 inline-block px-6 py-3 bg-amber-500 text-gray-900 rounded-lg font-bold hover:bg-amber-600 transition-all duration-300"
           >
             Explore Recipes

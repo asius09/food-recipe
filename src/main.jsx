@@ -10,13 +10,13 @@ import {
   Route,
 } from "react-router";
 import { Home, Result, Recipe, Favourites, Feed } from "./components";
-import { RecipeProvider } from "./context";
+import { RecipeProvider, NavbarProvider } from "./context";
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
       <Route index element={<Home />} />
       <Route path="result/:search" element={<Result />} />
-      <Route path="result/:id/recipe/:name" element={<Recipe />} />
+      <Route path="result/:search/recipe/:name" element={<Recipe />} />
       <Route path="favourites" element={<Favourites />} />
       <Route path="feed" element={<Feed />} />
     </Route>
@@ -26,7 +26,9 @@ const router = createBrowserRouter(
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <RecipeProvider>
-      <RouterProvider router={router} />
+      <NavbarProvider>
+        <RouterProvider router={router} />
+      </NavbarProvider>
     </RecipeProvider>
   </StrictMode>
 );

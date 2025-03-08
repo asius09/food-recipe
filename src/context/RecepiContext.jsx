@@ -19,20 +19,17 @@ const RecipeProvider = ({ children }) => {
     "favourites",
     []
   );
-  // Use useMemo to create the URL only when search changes
+  const [recipes, setRecipes] = useLocalStorage("recipes", []);
+
   const searchUrl = useMemo(() => {
     if (search) return `https://dummyjson.com/recipes/search?q=${search}`;
     if (isFeedActive) {
-      return `https://dummyjson.com/recipes?limit=9&skip=${
-        loadMoreFeed === 0 ? 0 : loadMoreFeed * 9
-      }`;
+      return `https://dummyjson.com/recipes?limit=9&skip=${loadMoreFeed * 9}`;
     }
     return "";
   }, [search, isFeedActive, loadMoreFeed]);
 
-  // This will only call useFetch when searchUrl changes
   const { data, loading, error } = useFetch(searchUrl);
-  const [recipes, setRecipes] = useLocalStorage("recipes", []);
 
   useEffect(() => {
     if (data?.recipes) {
@@ -43,9 +40,8 @@ const RecipeProvider = ({ children }) => {
         setFeedRecipes((prev) => [...prev, ...data.recipes]);
       }
     }
-  }, [data]);
+  }, [data, search, isFeedActive, setRecipes, setFeedRecipes]);
 
-  // Create a wrapper function for setSearch that only updates when necessary
   const handleSearch = useCallback(
     (newSearch) => {
       if (newSearch !== search) {
@@ -54,28 +50,37 @@ const RecipeProvider = ({ children }) => {
     },
     [search]
   );
+
   const checkFavorite = useCallback(
-    (recipeId) => {
-      return favorites.some((item) => item.id === recipeId);
-    },
-    [favorites, setFavorites]
+    (recipeId) => favorites.some((item) => item.id === recipeId),
+    [favorites]
   );
 
   const addToFavorites = useCallback(
-    (recipe) => {
-      setFavorites((prev) => [...prev, { ...recipe, isFavorite: true }]);
-    },
-    [setFavorites, favorites]
+    (recipe) =>
+      setFavorites((prev) => [...prev, { ...recipe, isFavorite: true }]),
+    [setFavorites]
   );
 
   const removeFromFavorites = useCallback(
-    (recipeId) => {
-      setFavorites((prev) => prev.filter((item) => item.id !== recipeId));
-    },
-    [setFavorites, favorites]
+    (recipeId) =>
+      setFavorites((prev) => prev.filter((item) => item.id !== recipeId)),
+    [setFavorites]
   );
 
-  // Provide the wrapped setter instead of the raw one
+  const clearFeedRecipes = useCallback(() => {
+    // Use a direct state update to avoid dependency loop
+    setFeedRecipes([]);
+    // Clear from localStorage manually without triggering another render cycle
+    localStorage.setItem("feedRecipes", JSON.stringify([]));
+  }, [setFeedRecipes]);
+
+  const clearExplore = useCallback(() => {
+    clearFeedRecipes();
+    setLoadMoreFeed(0);
+    setIsFeedActive(false);
+  }, [clearFeedRecipes]);
+
   const contextValue = useMemo(
     () => ({
       search,
@@ -91,6 +96,7 @@ const RecipeProvider = ({ children }) => {
       setIsFeedActive,
       setLoadMoreFeed,
       feedRecipes,
+      clearExplore,
     }),
     [
       search,
@@ -103,11 +109,10 @@ const RecipeProvider = ({ children }) => {
       removeFromFavorites,
       clearFavorites,
       checkFavorite,
-      isFeedActive,
       setIsFeedActive,
-      loadMoreFeed,
       setLoadMoreFeed,
       feedRecipes,
+      clearExplore,
     ]
   );
 

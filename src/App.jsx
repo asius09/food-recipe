@@ -1,10 +1,19 @@
 import { Outlet } from "react-router";
 import { Navbar } from "./components";
 import { useLocation } from "react-router";
+import { useRecipe } from "./context";
+import { useEffect } from "react";
 
 function App() {
   const location = useLocation();
-  console.log(location);
+  const { clearExplore } = useRecipe();
+
+  useEffect(() => {
+    if (location.pathname !== "/feed") {
+      clearExplore();
+    }
+  }, [location, clearExplore]);
+
   return (
     <div className="min-h-screen w-screen bg-gray-900 flex flex-col">
       <Navbar />
